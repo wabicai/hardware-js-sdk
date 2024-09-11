@@ -1,0 +1,29 @@
+{
+  "files": {
+    "main.js": "/static/js/main.baf63246.js",
+    "static/js/863.cb87f515.chunk.js": "/static/js/863.cb87f515.chunk.js",
+    "static/js/720.8b0f349d.chunk.js": "/static/js/720.8b0f349d.chunk.js",
+    "static/js/30.f70c45e2.chunk.js": "/static/js/30.f70c45e2.chunk.js",
+    "static/js/326.e5de13c2.chunk.js": "/static/js/326.e5de13c2.chunk.js",
+    "static/js/653.8b4c79d8.chunk.js": "/static/js/653.8b4c79d8.chunk.js",
+    "static/js/354.4c34b792.chunk.js": "/static/js/354.4c34b792.chunk.js",
+    "static/js/587.cde7b40e.chunk.js": "/static/js/587.cde7b40e.chunk.js",
+    "static/js/357.5b3b8d5b.chunk.js": "/static/js/357.5b3b8d5b.chunk.js",
+    "static/js/99.abcf3f11.chunk.js": "/static/js/99.abcf3f11.chunk.js",
+    "static/js/409.89f2683b.chunk.js": "/static/js/409.89f2683b.chunk.js",
+    "static/js/201.b495f660.chunk.js": "/static/js/201.b495f660.chunk.js",
+    "static/js/10.d35d0662.js": "/static/js/10.d35d0662.js",
+    "static/js/222.bd6dcfa6.chunk.js": "/static/js/222.bd6dcfa6.chunk.js",
+    "static/js/742.e6498165.chunk.js": "/static/js/742.e6498165.chunk.js",
+    "favicon.ico": "/favicon.ico",
+    "index.html": "/index.html",
+    "favicon-32.png": "/favicon-32.png",
+    "favicon-16.png": "/favicon-16.png",
+    "manifest.json": "/manifest.json",
+    "serve.json": "/serve.json"
+  },
+  "entrypoints": [
+    "static/js/10.d35d0662.js",
+    "static/js/main.baf63246.js"
+  ]
+}

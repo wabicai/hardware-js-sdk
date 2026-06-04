@@ -1358,7 +1358,7 @@ describe('Protocol V2 firmware update method', () => {
 });
 
 describe('Protocol V2 onboarding status method', () => {
-  test('returns DeviceOnboardingStatus from low-level status query', async () => {
+  test('returns OnboardingStatus from low-level status query', async () => {
     const method = new DeviceGetOnboardingStatus({
       id: 1,
       payload: {
@@ -1368,10 +1368,16 @@ describe('Protocol V2 onboarding status method', () => {
     method.init();
 
     const typedCall = jest.fn().mockResolvedValue({
-      type: 'DeviceOnboardingStatus',
+      type: 'OnboardingStatus',
       message: {
-        step: 4,
-        page_name: 'Recovery Phrase',
+        step: 3,
+        setup: {
+          restore: {
+            mnemonic: true,
+          },
+        },
+        detail_code: 7,
+        detail_str: 'Recovery Phrase',
       },
     });
 
@@ -1380,14 +1386,16 @@ describe('Protocol V2 onboarding status method', () => {
     };
 
     await expect(method.run()).resolves.toEqual({
-      step: 4,
-      page_name: 'Recovery Phrase',
+      step: 3,
+      setup: {
+        restore: {
+          mnemonic: true,
+        },
+      },
+      detail_code: 7,
+      detail_str: 'Recovery Phrase',
     });
-    expect(typedCall).toHaveBeenCalledWith(
-      'DeviceGetOnboardingStatus',
-      'DeviceOnboardingStatus',
-      {}
-    );
+    expect(typedCall).toHaveBeenCalledWith('GetOnboardingStatus', 'OnboardingStatus', {});
   });
 });
 

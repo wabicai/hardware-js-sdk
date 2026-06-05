@@ -39,6 +39,9 @@ export default class SuiSignTransaction extends BaseMethod<SuiSignTx> {
 
   getVersionRange() {
     return {
+      pro2: {
+        min: '0.0.0',
+      },
       model_mini: {
         min: '3.0.0',
       },

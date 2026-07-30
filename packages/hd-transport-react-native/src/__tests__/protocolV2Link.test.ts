@@ -5,10 +5,11 @@ import transportPackage, {
   TRANSPORT_EVENT,
   bytesToHex,
 } from '@onekeyfe/hd-transport';
-import { HardwareErrorCode } from '@onekeyfe/hd-shared';
+import { HardwareErrorCode, createDeferred } from '@onekeyfe/hd-shared';
 
 import ReactNativeBleTransport, {
   configureProtocolV2BleTuning,
+  getFirmwareUploadWriteRetryType,
   resetProtocolV2BleTuning,
 } from '../index';
 
@@ -252,6 +253,47 @@ const createV1Harness = () => {
 };
 
 describe('ReactNativeBleTransport Protocol V2 link lifecycle', () => {
+  test('does not classify disconnects as retryable firmware writes', () => {
+    expect(
+      getFirmwareUploadWriteRetryType({
+        errorCode: 205,
+        message: 'Device disconnected after write',
+      })
+    ).toBeNull();
+  });
+
+  test('keeps another device reader when releasing a device with an active V1 call', async () => {
+    const transport = new ReactNativeBleTransport({ scanTimeout: 1 }) as any;
+    const activeV1Call = createDeferred<string>();
+    const otherDeviceReader = createDeferred<Uint8Array>();
+    activeV1Call.promise.catch(() => undefined);
+    otherDeviceReader.promise.catch(() => undefined);
+    transport.runPromise = activeV1Call;
+    transport.runPromiseDeviceId = 'device-a';
+    transport.protocolV2FramePromises.set('device-b', otherDeviceReader);
+
+    await transport.releaseNative('device-a', true);
+
+    expect(transport.protocolV2FramePromises.get('device-b')).toBe(otherDeviceReader);
+  });
+
+  test('rejects a pending reader when its device frame state resets', async () => {
+    const transport = new ReactNativeBleTransport({ scanTimeout: 1 }) as any;
+    const reader = createDeferred<Uint8Array>();
+    transport.protocolV2FramePromises.set('device-a', reader);
+    const result = Promise.race([
+      reader.promise.then(
+        () => 'resolved',
+        () => 'rejected'
+      ),
+      new Promise(resolve => setTimeout(() => resolve('pending'), 20)),
+    ]);
+
+    transport.resetProtocolV2Frames('device-a');
+
+    await expect(result).resolves.toBe('rejected');
+  });
+
   test('keeps the legacy default BLE scan timeout', () => {
     expect(new ReactNativeBleTransport({}).scanTimeout).toBe(3000);
   });

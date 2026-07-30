@@ -54,6 +54,10 @@ Transport 在 `acquire()` 完成物理连接后执行协议探测：
 
 V2 probe 使用 `Ping { message: 'protocol-v2-probe' }`。探测消息只用于确认链路，不等同于查询协议版本或设备信息。
 
+公共设备对象同样使用 `connectProtocol` 字段作为输出，但输出语义是当前连接已经活动探测确认的协议，
+不是原请求值。Core 的方法能力检查只读取该确认结果。设备型号独立来自 V1 `Features` 或 V2
+`DeviceInfo.hw.Device_type`；例如未来 Pro 返回 V2 时仍应识别为 Pro，而不是因为协议为 V2 被改成 Pro2。
+
 主要实现：
 
 - `packages/hd-transport/src/protocols/v2/probe.ts`

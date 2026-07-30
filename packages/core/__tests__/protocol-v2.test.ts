@@ -1,5 +1,10 @@
 import { EFirmwareType, HardwareErrorCode } from '@onekeyfe/hd-shared';
-import { DeviceRebootType, DeviceSessionPinType, DeviceSettingsPage } from '@onekeyfe/hd-transport';
+import {
+  DeviceRebootType,
+  DeviceSessionPinType,
+  DeviceSettingsPage,
+  DeviceType,
+} from '@onekeyfe/hd-transport';
 
 import * as firmwareBinaryApi from '../src/api/firmware/getBinary';
 import DnxGetAddress from '../src/api/dynex/DnxGetAddress';
@@ -604,6 +609,7 @@ describe('Protocol V2 feature adapter', () => {
     const features = normalizeProtocolV2Features(descriptor as any, {
       protocol_version: 1,
       hw: {
+        Device_type: DeviceType.PRO2,
         serial_no: 'PR2SERIAL',
       },
       fw: {
@@ -2358,7 +2364,9 @@ describe('Protocol V2 feature adapter', () => {
   test('uses Protocol V2 features directly when profile is absent', () => {
     const device = Device.fromDescriptor({ ...descriptor, protocolType: 'V2' } as any);
     (device as any).features = {
-      ...normalizeProtocolV2Features({ ...descriptor, protocolType: 'V2' } as any),
+      ...normalizeProtocolV2Features({ ...descriptor, protocolType: 'V2' } as any, {
+        hw: { Device_type: DeviceType.PRO2 },
+      }),
       serialNo: 'CACHED-SERIAL',
       label: 'Cached Label',
       bleName: 'Cached BLE',
@@ -2439,7 +2447,7 @@ describe('Protocol V2 feature adapter', () => {
       typedCall: jest.fn().mockResolvedValueOnce({
         type: 'DeviceInfo',
         message: {
-          hw: { serial_no: 'PR2SERIAL' },
+          hw: { Device_type: DeviceType.PRO2, serial_no: 'PR2SERIAL' },
           fw: { application: { version: '1.2.3' } },
         },
       }),
@@ -2620,7 +2628,7 @@ describe('Protocol V2 feature adapter', () => {
       .mockResolvedValueOnce({
         type: 'DeviceInfo',
         message: {
-          hw: { serial_no: 'PR2SERIAL' },
+          hw: { Device_type: DeviceType.PRO2, serial_no: 'PR2SERIAL' },
           fw: { application: { version: '1.2.3' } },
         },
       })
@@ -2904,7 +2912,7 @@ describe('Protocol V2 feature adapter', () => {
       .mockResolvedValueOnce({
         type: 'DeviceInfo',
         message: {
-          hw: { serial_no: 'PR2SERIAL' },
+          hw: { Device_type: DeviceType.PRO2, serial_no: 'PR2SERIAL' },
           fw: { application: { version: '1.2.3' } },
         },
       })
@@ -2919,7 +2927,7 @@ describe('Protocol V2 feature adapter', () => {
       .mockResolvedValueOnce({
         type: 'DeviceInfo',
         message: {
-          hw: { serial_no: 'PR2SERIAL' },
+          hw: { Device_type: DeviceType.PRO2, serial_no: 'PR2SERIAL' },
           fw: { application: { version: '1.2.4' } },
         },
       })
@@ -3057,7 +3065,7 @@ describe('Protocol V2 feature adapter', () => {
     (device as any).features = normalizeProtocolV2Features(
       { ...descriptor, protocolType: 'V2' } as any,
       {
-        hw: { serial_no: 'PR2SERIAL' },
+        hw: { Device_type: DeviceType.PRO2, serial_no: 'PR2SERIAL' },
         fw: { application: { version: '1.2.3' } },
         status: { init_states: true },
       }

@@ -181,9 +181,141 @@ const createHarness = () => {
   };
 };
 
+const createV1Harness = () => {
+  const uuid = 'rn-classic-id';
+  const notifySubscriptionRemovers: jest.Mock[] = [];
+  const disconnectSubscriptionRemovers: jest.Mock[] = [];
+  let notifyCallback:
+    | ((error: Error | null, characteristic: { value: string } | null) => void)
+    | undefined;
+  const notifyCharacteristic = {
+    uuid: '0003',
+    deviceID: uuid,
+    isNotifiable: true,
+    monitor: jest.fn(callback => {
+      notifyCallback = callback;
+      const remove = jest.fn();
+      notifySubscriptionRemovers.push(remove);
+      return { remove };
+    }),
+  };
+  let writeCount = 0;
+  const writeCharacteristic = {
+    uuid: '0002',
+    deviceID: uuid,
+    isWritableWithResponse: true,
+    isWritableWithoutResponse: true,
+    writeWithoutResponse: jest.fn(() => {
+      writeCount += 1;
+      if (writeCount === 1) {
+        notifyCallback?.(null, {
+          value: Buffer.from('3f23230002000000040a026f6b', 'hex').toString('base64'),
+        });
+      }
+      return Promise.resolve();
+    }),
+  };
+  const device = {
+    id: uuid,
+    name: 'OneKey Classic',
+    localName: 'OneKey Classic',
+    serviceUUIDs: ['00000001-0000-1000-8000-00805f9b34fb'],
+    isConnected: jest.fn(() => Promise.resolve(true)),
+    cancelConnection: jest.fn(() => Promise.resolve()),
+    onDisconnected: jest.fn(() => {
+      const remove = jest.fn();
+      disconnectSubscriptionRemovers.push(remove);
+      return { remove };
+    }),
+  };
+  const transport = new ReactNativeBleTransport({ scanTimeout: 1 });
+  const bleManager = {
+    devices: jest.fn(() => Promise.resolve([device])),
+    connectedDevices: jest.fn(() => Promise.resolve([])),
+    cancelTransaction: jest.fn(() => Promise.resolve()),
+  };
+  transport.blePlxManager = bleManager as any;
+  transport.resolveCharacteristics = jest.fn(() =>
+    Promise.resolve({ writeCharacteristic, notifyCharacteristic })
+  );
+  transport.init({ debug: jest.fn(), error: jest.fn() }, new EventEmitter());
+  transport.configure(protocolV1Schema);
+  transport.configureProtocolV2(protocolV2Schema);
+  return {
+    transport,
+    uuid,
+    device,
+    bleManager,
+    notifySubscriptionRemovers,
+    disconnectSubscriptionRemovers,
+  };
+};
+
 describe('ReactNativeBleTransport Protocol V2 link lifecycle', () => {
   test('keeps the legacy default BLE scan timeout', () => {
     expect(new ReactNativeBleTransport({}).scanTimeout).toBe(3000);
+  });
+
+  test('reconnects before falling back to Protocol V1 after a fatal V2 probe failure', async () => {
+    const { transport, uuid, device, notifySubscriptionRemovers, disconnectSubscriptionRemovers } =
+      createV1Harness();
+    const probeProtocolV2 = jest
+      .spyOn(transport as any, 'probeProtocolV2')
+      .mockImplementationOnce(async () => {
+        await (transport as any).releaseNative(uuid, true);
+        return false;
+      });
+    const resolveCharacteristics = jest.spyOn(transport as any, 'resolveCharacteristics');
+
+    await expect(transport.acquire({ uuid, protocolHint: 'V2' })).resolves.toEqual({
+      uuid,
+      protocolType: 'V1',
+    });
+
+    expect(probeProtocolV2).toHaveBeenCalledTimes(1);
+    expect(resolveCharacteristics).toHaveBeenCalledTimes(2);
+    expect(transport.getProtocolType(uuid)).toBe('V1');
+    expect(device.onDisconnected).toHaveBeenCalledTimes(1);
+    expect(notifySubscriptionRemovers).toHaveLength(2);
+    expect(notifySubscriptionRemovers[0]).toHaveBeenCalledTimes(1);
+
+    await transport.release(uuid, true);
+
+    expect(notifySubscriptionRemovers[1]).toHaveBeenCalledTimes(1);
+    expect(disconnectSubscriptionRemovers).toHaveLength(1);
+    expect(disconnectSubscriptionRemovers[0]).toHaveBeenCalledTimes(1);
+  });
+
+  test('cleans the rebuilt transport when Protocol V1 fallback also fails', async () => {
+    const { transport, uuid, device, bleManager, notifySubscriptionRemovers } = createV1Harness();
+    jest.spyOn(transport as any, 'probeProtocolV2').mockImplementationOnce(async () => {
+      await (transport as any).releaseNative(uuid, true);
+      return false;
+    });
+    jest.spyOn(transport as any, 'probeProtocolV1').mockResolvedValue(false);
+
+    await expect(transport.acquire({ uuid, protocolHint: 'V2' })).rejects.toMatchObject({
+      errorCode: HardwareErrorCode.BleTimeoutError,
+    });
+
+    expect(device.onDisconnected).not.toHaveBeenCalled();
+    expect(notifySubscriptionRemovers).toHaveLength(2);
+    expect(notifySubscriptionRemovers[0]).toHaveBeenCalledTimes(1);
+    expect(notifySubscriptionRemovers[1]).toHaveBeenCalledTimes(1);
+    expect(bleManager.cancelTransaction).toHaveBeenCalled();
+    expect(transport.getProtocolType(uuid)).toBeUndefined();
+  });
+
+  test('disconnects and invalidates a Protocol V1 link after a response timeout', async () => {
+    const { transport, uuid, device } = createV1Harness();
+
+    await transport.acquire({ uuid, expectedProtocol: 'V1' });
+    await expect(transport.call(uuid, 'Initialize', {}, { timeoutMs: 5 })).rejects.toMatchObject({
+      errorCode: HardwareErrorCode.BleTimeoutError,
+    });
+
+    expect(device.cancelConnection).toHaveBeenCalled();
+    expect(transport.getProtocolType(uuid)).toBeUndefined();
   });
 
   afterEach(() => {

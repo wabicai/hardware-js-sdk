@@ -33,6 +33,8 @@ import ChainMethodsIndexPage from './routes/chains.$chainId._index';
 import ChainMethodExecutePage from './routes/chains.$chainId.$methodName';
 import DeviceMethodsIndexPage from './routes/device-methods._index';
 import DeviceMethodExecutePage from './routes/device-methods.$methodName';
+import Pro2UpdatePage from './routes/pro2-update';
+import MethodBatchTestPage from './routes/method-batch-test';
 
 // Import styles
 import './tailwind.css';
@@ -121,6 +123,14 @@ const router = createHashRouter(
         },
 
         {
+          path: 'device-method',
+          element: <DeviceMethodsIndexPage />,
+        },
+        {
+          path: 'device-method/:methodName',
+          element: <DeviceMethodExecutePage />,
+        },
+        {
           path: 'device-methods',
           element: <DeviceMethodsIndexPage />,
         },
@@ -140,6 +150,15 @@ const router = createHashRouter(
         {
           path: 'chains/:chainId/:methodName',
           element: <ChainMethodExecutePage />,
+        },
+
+        {
+          path: 'pro2-update',
+          element: <Pro2UpdatePage />,
+        },
+        {
+          path: 'method-batch-test',
+          element: <MethodBatchTestPage />,
         },
       ],
     },

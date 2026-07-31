@@ -27,6 +27,7 @@ import {
   Server,
   Info,
   ListChecks,
+  ShieldCheck,
 } from 'lucide-react';
 import { getDeviceLabel } from '@onekeyfe/hd-core';
 import packageJson from '../../package.json';
@@ -87,6 +88,11 @@ const navigationItems = [
     title: 'common.methodBatchTest',
     url: '/method-batch-test',
     icon: ListChecks,
+  },
+  {
+    title: 'common.multisigTest',
+    url: '/multisig-test',
+    icon: ShieldCheck,
   },
 ];
 

@@ -30,6 +30,7 @@ export const zh = {
       emulator: '模拟器',
       pro2Update: 'Pro2 升级',
       methodBatchTest: '链方法批量测试',
+      multisigTest: '多签测试',
       navigation: '导航',
       current: '当前',
       toggleTheme: '切换主题',

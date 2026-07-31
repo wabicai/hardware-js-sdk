@@ -35,6 +35,7 @@ import DeviceMethodsIndexPage from './routes/device-methods._index';
 import DeviceMethodExecutePage from './routes/device-methods.$methodName';
 import Pro2UpdatePage from './routes/pro2-update';
 import MethodBatchTestPage from './routes/method-batch-test';
+import MultisigTestPage from './routes/multisig-test';
 
 // Import styles
 import './tailwind.css';
@@ -159,6 +160,10 @@ const router = createHashRouter(
         {
           path: 'method-batch-test',
           element: <MethodBatchTestPage />,
+        },
+        {
+          path: 'multisig-test',
+          element: <MultisigTestPage />,
         },
       ],
     },

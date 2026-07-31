@@ -30,6 +30,7 @@ export const en = {
       emulator: 'Emulator',
       pro2Update: 'Pro2 Update',
       methodBatchTest: 'Chain Method Batch Test',
+      multisigTest: 'Multisig Test',
       navigation: 'Navigation',
       current: 'Current',
       toggleTheme: 'Toggle Theme',

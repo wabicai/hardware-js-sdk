@@ -833,9 +833,12 @@ export class Device extends EventEmitter {
 
       const expectedDeviceId = options?.deviceId;
       if (expectedDeviceId) {
-        // Establish the live physical identity before sending wallet-bound state.
+        // Verify physical identity without selecting a wallet context. The full
+        // Initialize below chooses the requested standard or hidden wallet.
         this.passphraseState = undefined;
-        await callInitialize({ is_contains_attach: true });
+        const { message } = await this.commands.typedCall('GetFeatures', 'Features', {});
+        this._updateFeatures(message);
+        await TransportManager.reconfigure(this.features);
         if (!this.checkDeviceId(expectedDeviceId)) {
           throw ERRORS.TypedError(HardwareErrorCode.DeviceCheckDeviceIdError);
         }
@@ -859,15 +862,7 @@ export class Device extends EventEmitter {
         payload.derive_cardano = true;
       }
 
-      const requiresWalletInitialize =
-        !expectedDeviceId ||
-        Boolean(internalState) ||
-        Boolean(options?.passphraseState) ||
-        options?.deriveCardano === true ||
-        options?.initSession === true;
-      if (requiresWalletInitialize) {
-        await callInitialize(payload, options?.initSession);
-      }
+      await callInitialize(payload, options?.initSession);
     } catch (error) {
       Log.error('Initialization failed:', error);
       throw error;

@@ -270,10 +270,7 @@ export default class WebUsbTransport extends ProtocolV2UsbTransportBase<string> 
   }
 
   private createProtocolDetectionError() {
-    return ERRORS.TypedError(
-      HardwareErrorCode.RuntimeError,
-      'Unable to detect USB protocol: device did not respond to Protocol V1 Initialize or Protocol V2 Ping'
-    );
+    return ERRORS.TypedError(HardwareErrorCode.DeviceNotFound);
   }
 
   private async detectProtocol(
@@ -769,7 +766,7 @@ export default class WebUsbTransport extends ProtocolV2UsbTransportBase<string> 
     }
 
     if (!shouldSuppressHighVolumeCallLog(name)) {
-      this.Log.debug('transport call', createTransportCallLog(name, protocol));
+      this.Log.debug('transport call', createTransportCallLog(name, protocol, data));
     }
 
     if (protocol === 'V2') {
